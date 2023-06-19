@@ -128,3 +128,5 @@ multi-task learning会把以前学到的东西，在新的阶段还拿出来，�
 当看到自己的学长学姐都这么优秀的时候，我就会感觉目前自己的知识、经历、眼界是远远不足的。有的时候我可能会为一些小的荣誉沾沾自喜，但是在见识到优秀的前辈们如此脚踏实地，有着如此丰富的学识与经历却并未过度强调或过度追求那些所谓的奖项和荣誉时，我就会觉得受之有愧。
 
 Anyway，目前我的目标不仅在补好基础知识，还要大力减肥！！！:facepunch:
+
+:link:[LLL colab](https://colab.research.google.com/drive/1QzyvUSwa_8d93jJTONX4I6Pqn9E2ARYs#scrollTo=7OTZLwxrWFbL)
