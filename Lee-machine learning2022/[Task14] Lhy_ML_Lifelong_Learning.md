@@ -6,7 +6,7 @@
 
 **Q1: 终身学习的大致流程？**
 
-<img src="C:\Users\12849\AppData\Roaming\Typora\typora-user-images\image-20230619100910188.png" alt="image-20230619100910188" style="zoom:67%;" />
+<img src="assets/image-20230619100910188-16871613723981.png" alt="image-20230619100910188" style="zoom:67%;" />
 
 先从旧任务的标记数据中学习，然后使用线上的数据资料更新模型参数。
 
@@ -14,7 +14,7 @@
 
 **Q2: 终身学习会遇到的问题——different domain, catastrophic forgetting, order(顺序)**
 
-<img src="C:\Users\12849\AppData\Roaming\Typora\typora-user-images\image-20230619101235339.png" alt="image-20230619101235339" style="zoom:67%;" />
+<img src="assets/image-20230619101235339-16871613741452.png" alt="image-20230619101235339" style="zoom:67%;" />
 
 比如说这个，学了任务2之后，机器可能会遗忘了对任务1所学到的知识。
 
@@ -45,13 +45,13 @@ multi-task learning会把以前学到的东西，在新的阶段还拿出来，�
 
 **Q6: 对LLL的评估方式**
 
-<img src="C:\Users\12849\AppData\Roaming\Typora\typora-user-images\image-20230619102549153.png" alt="image-20230619102549153" style="zoom:50%;" />
+<img src="assets/image-20230619102549153-16871613763203.png" alt="image-20230619102549153" style="zoom:50%;" />
 
 
 
 **Q7: 当前终身学习的3种解决方案**
 
-<img src="C:\Users\12849\AppData\Roaming\Typora\typora-user-images\image-20230619102728775.png" alt="image-20230619102728775" style="zoom:50%;" />
+<img src="assets/image-20230619102728775-16871613778664.png" alt="image-20230619102728775" style="zoom:50%;" />
 
 
 
@@ -59,7 +59,7 @@ multi-task learning会把以前学到的东西，在新的阶段还拿出来，�
 
 不同的任务有不同的error surface
 
-<img src="C:\Users\12849\AppData\Roaming\Typora\typora-user-images\image-20230619102807731.png" alt="image-20230619102807731" style="zoom:50%;" />
+<img src="assets/image-20230619102807731-16871613794415.png" alt="image-20230619102807731" style="zoom:50%;" />
 
 
 
@@ -67,7 +67,7 @@ multi-task learning会把以前学到的东西，在新的阶段还拿出来，�
 
 就是加了一个惩罚项，然后用$b_i$来衡量每一个参数的重要性，希望后面学的参数和前面学的参数尽量地接近（在某些参数上）   常见的是**人去设定**的$b_i$
 
-<img src="C:\Users\12849\AppData\Roaming\Typora\typora-user-images\image-20230619103002228.png" alt="image-20230619103002228" style="zoom:50%;" />
+<img src="assets/image-20230619103002228-16871613807136.png" alt="image-20230619103002228" style="zoom:50%;" />
 
 
 
@@ -77,7 +77,7 @@ multi-task learning会把以前学到的东西，在新的阶段还拿出来，�
 - 如果$b_i$设置的很大，希望尽可能和之前学习的参数保持一样，就会有Intransigence的问题（对新的任务学不好）
 - example:
 
-<img src="C:\Users\12849\AppData\Roaming\Typora\typora-user-images\image-20230619103044896.png" alt="image-20230619103044896" style="zoom:50%;" />
+<img src="assets/image-20230619103044896-16871613821617.png" alt="image-20230619103044896" style="zoom:50%;" />
 
 
 
