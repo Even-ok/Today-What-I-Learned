@@ -111,22 +111,47 @@ multi-task learning会把以前学到的东西，在新的阶段还拿出来，�
 
 终于知道为什么EWC只取参数一阶导数的平方了，是因为泰勒展开后，因为有最大值，一阶导为0，那么考虑二阶导。二阶导需要减少计算开销，所以转成了Fisher信息矩阵，可以通过一阶导数的平方计算出来！
 
+**注意**：EWC是需要labelled data的，因为需要求梯度！ 
+
 > 我认为的另一个理解方式是，Fisher 信息矩阵也反映了我们对参数估计的不确定度。二阶导越大，说明我们对该参数的估计越确定，同时 Fisher 信息也越大，惩罚项就越大。于是越确定的参数在后面的任务里更新幅度就越小。
 
 
 
 - **MAS**
 
+> these importance weights approximate the sensitivity of the learned function to a parameter change rather than a measure of the (inverse of) parameter uncertainty
+>
+> Our goal is to preserve the prediction of the network (the learned function) at each observed data point and prevent changes to parameters that are important for this prediction.
+
+```python
+print(torch.norm(a, p=2) ** 2)
+print(a.pow(2).sum())
+# 这两个是一样的，但是因为EWC用的loss默认是mean，就是对所有样本做个mean，所以最好不要用norm那个吧，不然还要除以num_data（好像是一样的...）
+# 反正dl答案是这样
+"""
+TODO
+"""
+        output_pow = output.pow(2) # 每个元素平方
+        l2_norm_square = torch.sum(output_pow, dim=1).mean()
+        l2_norm_square.backward()
+
+        for n, p in self.model.named_parameters():
+          # get the gradient of each parameter and square it, then average it in all validation set.
+          precision_matrices[n].data += p.grad.data.abs() / num_data  # 注意了，这里用到绝对值！
+```
 
 
 
 
-------
 
-### Some thought
+> ------
+>
+> ### Some thought
+>
+> 当看到自己的学长学姐都这么优秀的时候，我就会感觉目前自己的知识、经历、眼界是远远不足的。有的时候我可能会为一些小的荣誉沾沾自喜，但是在见识到优秀的前辈们如此脚踏实地，有着如此丰富的学识与经历却并未过度强调或过度追求那些所谓的奖项和荣誉时，我就会觉得受之有愧。
+>
+> Anyway，目前我的目标不仅在补好基础知识，还要大力减肥！！！:facepunch:
+>
+> :link:[LLL colab](https://colab.research.google.com/drive/1QzyvUSwa_8d93jJTONX4I6Pqn9E2ARYs#scrollTo=7OTZLwxrWFbL)
 
-当看到自己的学长学姐都这么优秀的时候，我就会感觉目前自己的知识、经历、眼界是远远不足的。有的时候我可能会为一些小的荣誉沾沾自喜，但是在见识到优秀的前辈们如此脚踏实地，有着如此丰富的学识与经历却并未过度强调或过度追求那些所谓的奖项和荣誉时，我就会觉得受之有愧。
-
-Anyway，目前我的目标不仅在补好基础知识，还要大力减肥！！！:facepunch:
-
-:link:[LLL colab](https://colab.research.google.com/drive/1QzyvUSwa_8d93jJTONX4I6Pqn9E2ARYs#scrollTo=7OTZLwxrWFbL)
+今天大多数时间办签证去了....没有认真学习
