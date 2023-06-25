@@ -81,6 +81,8 @@ multi-task learning会把以前学到的东西，在新的阶段还拿出来，�
 
 
 
+
+
 **Q11: 方法介绍（from homework）**
 
 - **EWC**
@@ -140,9 +142,147 @@ TODO
           precision_matrices[n].data += p.grad.data.abs() / num_data  # 注意了，这里用到绝对值！
 ```
 
+这个方法的好处就在于，不需要使用到labelled data，而且可以从局部传播的角度进行参数传播和更新。
 
 
 
+- SI
+
+  > Each synapse accumulates task relevant information over time, and exploits this information to rapidly store new memories without forgetting old ones.
+  >
+  > Our importance measure can be computed efficiently and locally at each synapse during training, and represents the local contribution of each synapse to the change in the 
+  >
+  > <img src="assets/image-20230625174821677.png" alt="image-20230625174821677" style="zoom:67%;" />
+  >
+  > <img src="assets/image-20230624175552081.png" alt="image-20230624175552081" style="zoom: 50%;" />
+  >
+  > 
+  
+  - 什么问题？：突触的复杂度。一维的突触会有灾难性遗忘，用三维空间可以解决。EWC limit了低维输出空间的应用 （???）
+  - 解决了什么？创新点？： structural形式的改进，也就是让参数和旧任务的参数尽可能相似
+  - 具体实施方式？
+  
+  计算每个参数对于Loss的贡献，然后得到关于某一个任务的该参数的惩罚系数。这个贡献在训练阶段是一直更新的，然后在这个任务训练完毕后，计算得到惩罚系数$\Omega$之后，这个贡献又被初始化为0.
+  
+  这个方式相对于EWC的优势在于，它的计算是online and along the entire learning trajectory的，而并非在一个seperate phase。个人理解是因为EWC需要最终的参数计算每个task的最终状态，而SI可以在过程中每个时间段都可以计算，因为那个$w_k^v$是在一直变化的。可能是叠加了中间过程的变化把！它可能是觉得EWC intractable? 
+
+<img src="assets/image-20230624180641949.png" alt="image-20230624180641949" style="zoom: 67%;" />
+
+还是看这篇吧，我完全看不懂论文里面的推导...数学太差了[突触智能与人工神经网络的终身学习机制 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/529527139)
+
+```python
+# SI的具体实现方式，但是这里好像完全没有考虑分类损失呀？ 只是对参数的改变做了个panelty而已
+class si(object):
+  def __init__(self, model, dataloader, epsilon, device):
+    self.model = model
+    self.dataloader = dataloader
+    self.device = device
+    self.epsilon = epsilon
+    # extract all parameters in models
+    self.params = {n: p for n, p in self.model.named_parameters() if p.requires_grad}
+
+    self._n_p_prev, self._n_omega = self._calculate_importance()
+    self.W, self.p_old = self._init_()
+
+
+  def _init_(self):
+    W = {}
+    p_old = {}
+    for n, p in self.model.named_parameters():
+      n = n.replace('.', '__')
+      if p.requires_grad: 
+        W[n] = p.data.clone().zero_()  # 参数对loss的一个重要性！ 
+        p_old[n] = p.data.clone()
+    return W, p_old
+
+  def _calculate_importance(self):
+    n_p_prev = {}
+    n_omega = {}
+
+    if self.dataloader != None:
+      for n, p in self.model.named_parameters():
+        n = n.replace('.', '__')
+        if p.requires_grad:
+          # Find/calculate new values for quadratic penalty on parameters
+          p_prev = getattr(self.model, '{}_SI_prev_task'.format(n))
+          W = getattr(self.model, '{}_W'.format(n))
+          p_current = p.detach().clone()
+          p_change = p_current - p_prev
+          omega_add = W/(p_change**2 + self.epsilon)
+          try:
+            omega = getattr(self.model, '{}_SI_omega'.format(n))
+          except AttributeError:
+            omega = p.detach().clone().zero_()
+          omega_new = omega + omega_add   # 这个惩罚参数是一直累加的！
+          n_omega[n] = omega_new
+          n_p_prev[n] = p_current
+
+          # Store these new values in the model
+          self.model.register_buffer('{}_SI_prev_task'.format(n), p_current)  # 这个应该是某个参数，上一个任务的具体值
+          self.model.register_buffer('{}_SI_omega'.format(n), omega_new)    # 这个是某个参数的惩罚系数
+
+    else:  # 进行一个初始化
+      for n, p in self.model.named_parameters():
+        n = n.replace('.', '__')
+        if p.requires_grad:
+          n_p_prev[n] = p.detach().clone()
+          n_omega[n] = p.detach().clone().zero_()
+          self.model.register_buffer('{}_SI_prev_task'.format(n), p.detach().clone())
+    return n_p_prev, n_omega
+
+  def penalty(self, model: nn.Module):
+    loss = 0.0  # 这个应该是不合理的，应该为具体的任务损失（分类损失等）
+    for n, p in model.named_parameters():
+      n = n.replace('.', '__')
+      if p.requires_grad:
+        prev_values = self._n_p_prev[n]
+        omega = self._n_omega[n]
+        _loss = omega * (p - prev_values) ** 2  # surrogate loss
+        loss += _loss.sum()
+    return loss
+
+  def update(self, model):
+    for n, p in model.named_parameters():
+      n = n.replace('.', '__')
+      if p.requires_grad:
+        if p.grad is not None:
+          self.W[n].add_(-p.grad * (p.detach() - self.p_old[n])) # 存储到原来的值中！ 反正这个就是个累加吧。按照那个积分公式来的（离散式）
+          self.model.register_buffer('{}_W'.format(n), self.W[n])
+        self.p_old[n] = p.detach().clone()
+    return
+```
+
+
+
+- RWalk
+
+> We present RWalk, a generalization of EWC++ (our efficient version of EWC ) and Path Integral with a theoretically grounded KL-divergence based perspective
+>
+> To compute and update the Fisher matrix, we use an **efficient (in terms of memory)** and **online (in terms of computation)** approach, leading to a faster and online version of EWC which we call EWC++.
+>
+> Next, we modify the PI [26] where instead of computing the change in the loss per unit distance in the Euclidean space between the parameters as the measure of sensitivity, we use the **approximate KL divergence** (distance in the Riemannian manifold) between the output distributions as the distance to compute the sensitivity
+>
+>  (3) strategies to obtain a few **representative samples** from the previous tasks. The first two components mitigate the effects of catastrophic forgetting, whereas the third handles intransigence.
+
+第一个更有效率，说的应该是计算新的fisher矩阵的时候，用的是滑动平均的方式，而不需要每个任务全计算一次并且存储下来每个任务的fisher。
+
+第二个， approximate KL 其实就是在EWC那个regularization的基础上加上一个关于参数对梯度的累计重要性的参数s
+
+第三个，就是添加一个subset of previous tasks，文中讨论了4种采样方式： Uniform Sampling、Plane Distance-based Sampling、Entropy-based Sampling、Mean of Features (MoF)
+
+Whole Loss:
+
+<img src="assets/image-20230625174428166.png" alt="image-20230625174428166" style="zoom:50%;" />
+
+Updated Fisher: 
+
+<img src="assets/image-20230625174717801.png" alt="image-20230625174717801" style="zoom:50%;" />
+
+parameter importance:
+
+<img src="assets/image-20230625174515144.png" alt="image-20230625174515144" style="zoom:50%;" />
+
+<img src="assets/image-20230625174530495.png" alt="image-20230625174530495" style="zoom:50%;" />
 
 > ------
 >
@@ -154,4 +294,9 @@ TODO
 >
 > :link:[LLL colab](https://colab.research.google.com/drive/1QzyvUSwa_8d93jJTONX4I6Pqn9E2ARYs#scrollTo=7OTZLwxrWFbL)
 
-今天大多数时间办签证去了....没有认真学习
+:date:6.25
+
+本社恐人简直要疯掉了！！！      啊啊啊啊啊找点活干怎么就是要那么厚脸皮！！
+
+Failed, 因为没有强化学习的经验所以师姐可能不会考虑带上我。所以下面估计要看一下强化学习方面的东西了！
+
