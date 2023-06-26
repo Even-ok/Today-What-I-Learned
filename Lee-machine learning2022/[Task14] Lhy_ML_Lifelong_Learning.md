@@ -284,6 +284,18 @@ parameter importance:
 
 <img src="assets/image-20230625174530495.png" alt="image-20230625174530495" style="zoom:50%;" />
 
+
+
+- SCP
+
+> We propose the sliced Cramer distance as a suitable ´ choice for such preservation and evaluate our Sliced Cramer Preservation (SCP) ´ algorithm through extensive empirical investigations on various network architectures in both supervised and unsupervised learning settings.
+
+
+
+
+
+
+
 > ------
 >
 > ### Some thought
@@ -299,4 +311,10 @@ parameter importance:
 本社恐人简直要疯掉了！！！      啊啊啊啊啊找点活干怎么就是要那么厚脸皮！！
 
 Failed, 因为没有强化学习的经验所以师姐可能不会考虑带上我。所以下面估计要看一下强化学习方面的东西了！
+
+:date: 6.26
+
+唉，反正不能既要又要还要，我觉得我还是先多多积累论文方法？ 论文语言。论文思路     然后为后续的投稿准备一下吧！ 对不起对不起对不起对不起对不起
+
+
 

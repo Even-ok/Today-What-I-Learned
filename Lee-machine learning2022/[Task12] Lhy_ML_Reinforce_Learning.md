@@ -23,3 +23,25 @@ challenge:
 - 不是一般的optimization的问题
 
 RL和GAN是有异曲同工之处的！ 
+
+- actor可以比作generator, Env和reward就像是discriminator
+- 不同点在于，GAN里面的discriminator是一个network，是可以解释的；但是reward是黑盒
+
+
+
+![image-20230626111538117](assets/image-20230626111538117.png)
+
+关于这个训练的数据pair和A这个weight是我们要找寻的东西。这里的$e_n$指的是entropy
+
+
+
+![image-20230626114349742](assets/image-20230626114349742.png)
+
+收集数据需要在循环过程中不断收集，而不是一开始就定好的！
+
+
+
+![image-20230626174816209](assets/image-20230626174816209.png)
+
+- on-policy: 和环境互动的actor和我们想要更新参数的actor是同一个
+- off-policy: 互动的actor和更新参数的actor不是同一个，优点在于不需要更新一次资料才训练一次，而是能训练多次。和环境互动的actor，随机性应该要大一些比较好。
