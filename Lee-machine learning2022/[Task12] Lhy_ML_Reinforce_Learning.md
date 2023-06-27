@@ -35,6 +35,10 @@ RL和GAN是有异曲同工之处的！
 
 
 
+![image-20230627172604362](assets/image-20230627172604362.png)
+
+需要用累加和的方式来求action的reward，那个立马输出的reward不是最终的reward。$\gamma$是discount，会随时间衰减的！
+
 ![image-20230626114349742](assets/image-20230626114349742.png)
 
 收集数据需要在循环过程中不断收集，而不是一开始就定好的！
@@ -44,4 +48,14 @@ RL和GAN是有异曲同工之处的！
 ![image-20230626174816209](assets/image-20230626174816209.png)
 
 - on-policy: 和环境互动的actor和我们想要更新参数的actor是同一个
-- off-policy: 互动的actor和更新参数的actor不是同一个，优点在于不需要更新一次资料才训练一次，而是能训练多次。和环境互动的actor，随机性应该要大一些比较好。
+- off-policy: 互动的actor和更新参数的actor不是同一个，优点在于不需要更新一次资料才训练一次，而是能训练多次。和环境互动的actor，随机性应该要大一些比较好。（PPO）
+
+
+
+![image-20230627171641960](assets/image-20230627171641960.png)
+
+需要增大actor的随机性，让它去学习尽可能多的可能，收集到尽可能丰富的数据
+
+![image-20230627173025940](assets/image-20230627173025940.png)
+
+value function，目标是计算出discounted cumulated reward。和action是有关的！ 
