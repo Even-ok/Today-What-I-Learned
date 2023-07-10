@@ -292,7 +292,21 @@ parameter importance:
 
 
 
+```python
+def sample_spherical(npoints, ndim=3):
+  vec = np.random.randn(ndim, npoints)  # 默认抽出3个样本？
+  vec /= np.linalg.norm(vec, axis=0)   # 正则化
+  return torch.from_numpy(vec)
 
+total_scalar = 0
+for vec in L_vectors:
+    scalar=torch.matmul(vec, mean_vec)
+    total_scalar += scalar
+    total_scalar /= L_vectors.shape[0]
+    total_scalar.backward()
+```
+
+解释一下上面的代码，感觉就差不多了，还有那个L到底是个啥？
 
 
 
