@@ -129,13 +129,22 @@
 
   - EWC: 通过计算fisher信息矩阵，获取每个参数对先前任务的重要程度，对于贡献度大的参数来说，对其更新所施加的惩罚也更大。
 
-##### 3. Algorithm-Centric(感觉可以和上一个合并)
+    <img src="assets/image-20230717162230354.png" alt="image-20230717162230354" style="zoom:50%;" />
 
-蒸馏+模型纠正   BiC 和 那个SSF有点相似的思想啊
+    <img src="assets/image-20230717162242998.png" alt="image-20230717162242998" style="zoom:50%;" />
+
+##### 3. Algorithm-Centric(感觉可以和上一个合并)  这里还稍微差点，不过我还不想写！ 
+
+LwF 、BiC（矫正偏好，用验证集去矫正输出bias）
 
 ##### 4. Discussion for from-scratch-method
 
-从数据集、哪种方法表现出强大实力（dynamic network）等方面来说
+- 数据集：用的最多的都是CIFAR100、ImageNet100、ImageNet1000这种，算是比较小的，因为是train from scratch的。
+- Dynamic Network的方法还是占据着表现力主导地位的
+- 用预训练的方式来和这些方法对比实际上是不公平的（除非它们的backbone也使用预训练的方式），原因：
+  - 这些模型是从头开始训练，挑战难度会更大
+  - 预训练的数据集与实际训练和测试的数据集可能会有大量重合，导致其性能远高于这种scratch的模型。
+  - 当给足够的空间资源时，动态网络是能够表现出很好的作用。但当资源限制时，就不一定能表现出最好的能力。因此需要做一个memory-agnostic的对比。文中提出的AUC-A和AUC-L是很好地选择。
 
 ------
 
@@ -143,23 +152,57 @@
 
 ##### Prompt-Centric
 
-L2P、Dual-Prompt、S-Prompt、CODA-Prompt
+和rehearsal-based的方式比较一下？就是不需要exampler去记录过去的类别，而是用一些特定的prompt。主要思想是，prompt由几个token组成，是可调的。但是image token是不可调的。下面还要看一下那个预训练模型固不固定把。
+
+![image-20230717165553837](assets/image-20230717165553837.png)
+
+- DyTox: 第一篇在continual learning中用ViT的文章（CVPR2022）每个task，制定一个独立的token和专属分类器（加起来的参数和整个预训练模型相比是很少的）。推理的时候，每个任务的token都将加到image token上（相当于原来的class token），然后送到专属分类器里面进行分类。
+
+- L2P：有一个prompt pool，里面是key-value paired，并且是固定数量的。input通过预训练模型提取得到query，然后匹配从prompt pool里面提取几个Token作为可训练的prompt，直接加入到image embedding前面（当作class token）进行训练。最后根据这个prompt对应的token，做平均得到预测类别。文章默认了这个prompt池里面的prompt既可以学习到共享知识，也能学到独立的知识。但文章还是用了一些rehearsal的方式，来和有buffer size的方法进行比较。文章没有说具体回放形式，应该是随机采样。
+
+  ![image-20230717174554066](assets/image-20230717174554066.png)
+
+- Dual-Prompt：强调是rehearsal-free的方式，并且把L2P里面的prompt pool进行了解耦。G-Prompt用来学习底层的，共享的特征，E-Prompt来处理比较高层的，具有判别性的特征。而且这些prompt插入的层不一样，G-Prompt主要插入在前两层，而E-Prompt插入在3-5层表现最好。G-Prompt长度5最好，E-Prompt长度20最好。
+
+  ![image-20230717175505723](assets/image-20230717175505723.png)
+
+  ![image-20230717175518990](assets/image-20230717175518990.png)
+
+- S-Prompt：和DyTox有点像，但这个是每一个**域**对应于一个（或几个）image token和一个tunable text prefix token，仅仅对域token和末端分类器进行微调。推理的时候用KNN选取距离图像特征最近的域特征中心（K-Means选出的）所代表的Prompt。然后像CLIP那样进行相似度匹配。
+
+  ![image-20230717180219700](assets/image-20230717180219700.png)
+
+  ![image-20230717180228459](assets/image-20230717180228459.png)
+
+- CODA-Prompt(可选)
 
 ##### Parameter-efficient
 
-ADAM (再看看还有没有其他的？)
+- **ADAM** (Adapt and merge)
+
+  ![image-20230717190559649](assets/image-20230717190559649.png)
+
+  ![image-20230717190813592](assets/image-20230717190813592.png)
+
+  - Model adaptation: 用PEFT的方式，获得一个adapted model。PEFT方式包括VPT、Scale&Shict、Adapter还有Batch Normalization Tuning。
+  - Merge with pre-trained：直接出来一个预训练的特征，然后和上面adapted model的concat在一起。
+
+- LAE(ICCV2023)
 
 ##### multi-modal
 
-+CLIP的  KNN-CLIP（但只是小数据集的）
++CLIP的  KNN-CLIP（但只是小数据集的）（最好今晚）
 
 ##### Other
 
-ELLE(也是一种Expansion的方法)
+- **ELLE**: model expansion的思想，是NLP领域的，针对的是Transformer的结构调整
+
+![image-20230717180916333](assets/image-20230717180916333.png)
+
+​	- 模型的宽度和深度都扩展了，而且还通过了一个function recover的方式，来在扩张的模型上保持原有模型的功能。深度扩充就是把中间的一些层复制多一份。而且还添加了预训练的domain prompt，来告诉它处于哪个领域？
 
 **Discussion for pre-trained-method**
 
-- 结合生物学思想
-- transformer的decoder是否可以用来做generative的replay?
-- 是否要结合rehearsal? 因为那篇综述里面说的，也可以加上rehearsal
-- 在更具挑战性的benchmark上进行实验，而非那种from scratch的小实验
+- 结合生物学思想: **combine with more Neuroscience knowledge**
+- transformer的decoder是否可以用来做generative的replay?  **用generative和replay的那种思想**
+- 在**更具挑战性的benchmark**上进行实验，而非那种from scratch的小实验   **more challenging benchmark**
