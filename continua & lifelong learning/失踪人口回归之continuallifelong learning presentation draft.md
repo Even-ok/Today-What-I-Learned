@@ -2,7 +2,7 @@
 
 
 
-> *前言：这段时间失踪是因为看了10+的traditional/pre-trained系列的连续学习/终身学习方面的文章，虽然是摆烂着看的，但也还是咬着牙看完了。基于下周要做的一个组会PPT，在这里先做一下文字版的解读。虽然我还是没有读懂一个baseline的代码，以及把毕设的promote工作拖延了很久。。。 搞完这个PPT咱们就去研究毕设的incremental工作~*
+> *前言：这段时间失踪是因为看了10+的traditional/pre-trained系列的连续学习/终身学习方面的文章，虽然是摆烂着看的，但也还是咬着牙看完了。基于下周要做的一个组会PPT，在这里先做一下文字版的解读。虽然我还是没有读懂一个baseline的代码，以及把毕设的promotion工作拖延了很久。。。 搞完这个PPT咱们就去研究毕设的incremental工作~*
 
 
 
@@ -189,10 +189,6 @@ LwF 、BiC（矫正偏好，用验证集去矫正输出bias）
 
 - LAE(ICCV2023)
 
-##### multi-modal
-
-+CLIP的  KNN-CLIP（但只是小数据集的）（最好今晚）
-
 ##### Other
 
 - **ELLE**: model expansion的思想，是NLP领域的，针对的是Transformer的结构调整
@@ -204,5 +200,6 @@ LwF 、BiC（矫正偏好，用验证集去矫正输出bias）
 **Discussion for pre-trained-method**
 
 - 结合生物学思想: **combine with more Neuroscience knowledge**
-- transformer的decoder是否可以用来做generative的replay?  **用generative和replay的那种思想**
+- transformer的decoder是否可以用来做generative的replay?  **用generative和replay的那种思想，因为当前的pre-trained的方式全都是model-centirc**
 - 在**更具挑战性的benchmark**上进行实验，而非那种from scratch的小实验   **more challenging benchmark**
+
