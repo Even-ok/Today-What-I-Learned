@@ -156,3 +156,6 @@ for epoch in range(1, 11):
     scheduler_1.step()
 ```
 
+
+
+![image-20230913214304823](assets/image-20230913214304823.png)
